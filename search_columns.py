@@ -74,27 +74,7 @@ for i,n in enumerate(data_correct):
         else:
             titles.append(n)       
             #data_correct.remove(n)           
-#%%
-(''') 
-page = []
-seite = []
-liste = []
-fuss = []
-for i,n in enumerate(data_correct): 
-    if n.startswith('Page'):
-        page.append(n)
-        data_correct[i] = []  
-    if n.startswith('Seite'):
-        seite.append(n)
-        data_correct[i] = []  
-    if n.startswith('Gebur'):
-        liste.append(n)
-        data_correct[i] = []  
-    m = re.findall("^(\d\))", n)
-    if m:
-        fuss.append(n)
-        data_correct[i] = []  
-(''')        
+#%%     
 for n in titles:
     while n in data_correct: data_correct.remove(n)   
 
@@ -115,13 +95,14 @@ with urllib.request.urlopen(liste1) as response:
     html_staedte = html_staedte.decode("utf-8") 
 staedte = re.findall('title="(.*)"',html_staedte)
 #%%
-#print(any(x in a for x in b))
-#any([True for e in (1, 2) if e in a])
-
-#orte = re.findall('<br>([A-Z][a-z]+)\n<br>', myfile5)
-
-
 orte = []
+for i,n in enumerate(data_correct):
+    m = re.findall('[A-Za-z]+[a-z]$',n)
+    if m:
+        orte.append(n)
+        data_correct[i] = '' 
+#%%
+
 strassen = []
 krankenhaus = []
 for i,n in enumerate(data_correct):
@@ -132,14 +113,12 @@ for i,n in enumerate(data_correct):
 for i,n in enumerate(data_correct):                    
     if re.findall('(.*. [0-9]*)',n) and not re.findall('.*% (.*)',n):
         strassen.append(re.findall('(.*. [0-9]*)',n))
-        #data_correct[i] = '' 
-    
-    #if n in staedte:
-     #   orte.append(n)
+        data_correct[i] = ''
+(''')
     t = n.split()
     orte.append([e for e in t if e in staedte])
-    #data_correct.remove(n)
-    #orte.append(re.findall('^([A-Z][a-z]+)',n))
+while [] in orte: orte.remove([])   
+(''')
 #%%    
 def checkforsequence(data):  
     for n in data:
@@ -147,20 +126,38 @@ def checkforsequence(data):
             dif =  abs(data_correct[i] - data_correct[i+1])
             listnumbers.append(n) 
 
-#%%
+#%% gebe alle digits raus
                 
 listnumbers = []
 for i,n in enumerate(data_correct):
     if data_correct[i].isdigit():
-        listnumbers.append(n)
-
-#%%
+        listnumbers.append(int(n))
+#%% most commong differences
 
 diffs = []
 for n in range(len(listnumbers)):
     diffs.append(abs(n-int(listnumbers[n])))
     
 most_common,num_most_common = Counter(diffs).most_common(1)[0]
+
+#%% falsche Rang-Nummer zwischen richtigen korrigieren
+for i,n in enumerate(diffs):
+    if n != most_common:
+        if (listnumbers[i+1] - listnumbers[i-1]) == 2:
+            listnumbers[i] = listnumbers[i] + 1
+
+
+        
+                
+#%%
+if len(krankenhaus) == len(listnumbers):
+    bigdic['NAME'] = krankenhaus
+if len(orte) == len(listnumbers):
+    bigdic['ORT'] = orte
+if len(krankenhaus) == len(listnumbers):
+    bigdic['STRASSE'] = strassen
+          
+                 
 
 #%% Finde Strassen mit Haus Nr
 (''')
@@ -174,3 +171,4 @@ for element in name:
         namenew.append(element)
      else:
          print('no match')
+(''')         
